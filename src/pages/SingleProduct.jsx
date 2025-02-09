@@ -4,10 +4,22 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { addItem } from "../features/cart/cartSlice";
-export const loader = async ({ params }) => {
-  const response = await customFetch(`/products/${params.id}`);
-  return { product: response.data.data };
+
+const singleProductQuery = (id) => {
+  return {
+    queryKey: ["singleProduct", id],
+    queryFn: () => customFetch.get(`/products/${id}`),
+  };
 };
+
+export const loader =
+  (queryClient) =>
+  async ({ params }) => {
+    const response = await queryClient.ensureQueryData(
+      singleProductQuery(params.id)
+    );
+    return { product: response.data.data };
+  };
 
 const SingleProduct = () => {
   const { product } = useLoaderData();
@@ -23,20 +35,20 @@ const SingleProduct = () => {
     setAmount(parseInt(e.target.value));
   };
 
-    const cartProduct = {
-      cartID: product.id + productColor,
-      productID: product.id,
-      image,
-      title,
-      price,
-      amount,
-      productColor,
-      company,
-    };
+  const cartProduct = {
+    cartID: product.id + productColor,
+    productID: product.id,
+    image,
+    title,
+    price,
+    amount,
+    productColor,
+    company,
+  };
   const dispatch = useDispatch();
- const addToCart = () => {
-   dispatch(addItem({ product: cartProduct }));
- };
+  const addToCart = () => {
+    dispatch(addItem({ product: cartProduct }));
+  };
   return (
     <section>
       <div className="text-md breadcrumbs">
@@ -106,10 +118,7 @@ const SingleProduct = () => {
           </div>
           {/* CART BUTTON */}
           <div className="mt-10 ">
-            <button
-              className="btn btn-secondary btn-md"
-              onClick={addToCart}
-            >
+            <button className="btn btn-secondary btn-md" onClick={addToCart}>
               Add to bag
             </button>
           </div>
